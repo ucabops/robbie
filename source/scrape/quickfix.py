@@ -3,9 +3,12 @@ import json
 
 # List of all corrections to apply
 corrections = [
-    {'xw': '10252', 'entry': '19-down', 'clue': "Ponder (5)"},
-    {'xw': '10445', 'entry': '19-across', 'clue': "Baptist in Bible (4)"},
+    {'xw': '10252', 'entry': '19-down', 'clue': 'Ponder (5)'},
+    {'xw': '10445', 'entry': '19-across', 'clue': 'Baptist in Bible (4)'},
     {'xw': '11025', 'entry': '19-across', 'group': ['17-across']},
+    {'xw': '11037', 'entry': '14-across', 'clue': 'Conjecture (6)'},
+    {'xw': '11037', 'entry': '17-across', 'clue': 'City on River Severn (10)'},
+    {'xw': '11038', 'entry': '19-across', 'clue': 'Paper - birthday, Christmas, etc. (4)'},
     {'xw': '11551', 'entry': '17-down', 'group': ['15-down']},
     {'xw': '11651', 'entry': '17-down', 'group': ['16-down']},
     {'xw': '11873', 'entry': '19-across', 'group': ['16-across']},
@@ -45,7 +48,7 @@ if __name__ == '__main__':
 
     # Quick check to make sure the code above has done what we expect
     entry = get_entry(data, xw_id='10252', entry_id='19-down')
-    assert (entry is None) or (entry['clue'] == "Ponder (5)")
+    assert (entry is None) or (entry['clue'] == 'Ponder (5)')
     
     # Save the updated dataset
     with open(filepath, 'w') as file:
