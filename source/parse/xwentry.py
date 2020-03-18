@@ -19,8 +19,8 @@ def parse_synonym(text):
     text = re.sub(r'\(\d+\-\d+\)', '', text)
     # remove all pairs of brackets
     text = re.sub(r'\(([^\)]+)\)', r'\1', text)
-    # # remove punctuation we're not interested in
-    # text = re.sub(r'''[^a-zA-Z'\- ]''', '', text)
+    # remove punctuation we're not interested in
+    text = re.sub(r'''[^a-zA-Z'\- ]''', '', text)
     # split by spaces and hyphens
     synonyms = re.split(r'[ \-]+', text)
     # # remove "-" from start of all tokens
