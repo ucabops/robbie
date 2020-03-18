@@ -11,6 +11,8 @@ corrections = [
     {'xw': '11038', 'entry': '19-across', 'clue': 'Paper - birthday, Christmas, etc. (4)'},
     {'xw': '11551', 'entry': '17-down', 'group': ['15-down']},
     {'xw': '11651', 'entry': '17-down', 'group': ['16-down']},
+    {'xw': '11707', 'entry': '19-across', 'clue': 'Gunfire - attempt (4)'},
+    {'xw': '11707', 'entry': '18-down', 'clue': 'Fewer (4)'},
     {'xw': '11873', 'entry': '19-across', 'group': ['16-across']},
 ]
 
