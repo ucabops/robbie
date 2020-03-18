@@ -42,3 +42,5 @@ if __name__ == '__main__':
     filepath = f'./data/{args.filename}-entries.json'
     with open(filepath, 'w') as file:
         json.dump(d, file)
+    
+    print(f"Feature set saved to {filepath}")
