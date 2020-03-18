@@ -25,29 +25,28 @@ if __name__ == '__main__':
     script_desc = 'Apply fixes to a downloaded set of crosswords.'
     parser = argparse.ArgumentParser(description=script_desc)
     parser.add_argument('filename', type=str,
-                        help='file where data is located (must be in ./data/raw)')
+                        help='file where data is located, excluding \'.json\' extension. must be in \'./data/raw\'.')
     args = parser.parse_args()
 
     # Load the dataset
-    filename = args.filename
-    filepath = f'./data/raw/{filename}'
+    filepath = f'./data/raw/{args.filename}.json'
     with open(filepath, 'r') as file:
-        xwset = json.load(file)
+        data = json.load(file)
 
     # Apply the corrections
     for correction in corrections:
         xw_id = correction['xw']
         entry_id = correction['entry']
-        entry = get_entry(xwset, xw_id, entry_id)
+        entry = get_entry(data, xw_id, entry_id)
         if entry:
             for key, val in correction.items():
                 if key not in ['xw', 'entry']:
                     entry[key] = val
 
     # Quick check to make sure the code above has done what we expect
-    entry = get_entry(xwset, xw_id='10252', entry_id='19-down')
+    entry = get_entry(data, xw_id='10252', entry_id='19-down')
     assert (entry is None) or (entry['clue'] == "Ponder (5)")
     
     # Save the updated dataset
     with open(filepath, 'w') as file:
-        json.dump(xwset, file)
+        json.dump(data, file)
