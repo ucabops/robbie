@@ -1,4 +1,6 @@
 from itertools import product
+from warnings import warn
+
 from xwentry import CrosswordEntry
 
 
@@ -34,14 +36,17 @@ class Crossword:
                 trivial_entries = list(
                     filter(lambda x: not (x.synonyms or x.anagram), entry_list))
                 if len(non_trivial_entries) > 1:
-                    err = f'Multiple clues in group "{entry_id}" of crossword "{xw_id}"\n' \
+                    msg = f'Multiple clues in group "{entry_id}" of crossword "{xw_id}"\n' \
                           f'Details: {[e.clue_text for e in non_trivial_entries]}'
-                    raise ValueError(err)
-                if len(non_trivial_entries) < 1:
-                    err = f'Invalid clue for group "{entry_id}" of crossword "{xw_id}"\n' \
+                    warn(msg)
+                    entry = non_trivial_entries[0]
+                elif len(non_trivial_entries) < 1:
+                    msg = f'Invalid clue for group "{entry_id}" of crossword "{xw_id}"\n' \
                           f'(Maybe the clue refers to itself, e.g. "See 8 across" for group "8-across"?)'
-                    raise ValueError(err)
-                entry = non_trivial_entries[0]
+                    warn(msg)
+                    entry = trivial_entries[0]
+                else:
+                    entry = non_trivial_entries[0]
                 # combine the other entries into this one
                 for other_entry in trivial_entries:
                     other_separators = [(len(entry.solution) + pos, sep)

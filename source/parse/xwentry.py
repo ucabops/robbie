@@ -2,72 +2,76 @@ import re
 from warnings import warn
 
 
-def read_clue(text):
-    def not_blank(s): return s != ""
+def parse_anagram(text):
+    # convert to lowercase
+    text = text.lower()
+    # remove non-letter characters
+    text = re.sub(r'[^a-zA-Z]', '', text)
+    return text
+
+
+def parse_synonym(text):
+    # convert to lowercase
+    text = text.lower()
+    # hardcoded rule: remove anything like "(b. 1650)" or "(d. 1773)"
+    text = re.sub(r'\([b|d]\.?\s+\d+\)', '', text)
+    # hardcoded rule: remove date ranges like "(1743-1789)"
+    text = re.sub(r'\(\d+\-\d+\)', '', text)
+    # remove all pairs of brackets
+    text = re.sub(r'\(([^\)]+)\)', r'\1', text)
+    # # remove punctuation we're not interested in
+    # text = re.sub(r'''[^a-zA-Z'\- ]''', '', text)
+    # split by spaces and hyphens
+    synonyms = re.split(r'[ \-]+', text)
+    # # remove "-" from start of all tokens
+    # synonyms = [re.sub(r"^-+", '', token) for token in synonym]
+    # # remove "-" from end of all tokens
+    # synonyms = [re.sub(r"-+$", '', token) for token in synonym]
+    # remove "'s" from end of all tokens
+    synonyms = [re.sub(r"'s$", '', token) for token in synonyms]
+    # remove all other apostrophes from beginning of tokens
+    synonyms = [re.sub(r"^'+", '', token) for token in synonyms]
+    # remove all other apostrophes from end of tokens
+    synonyms = [re.sub(r"'+$", '', token) for token in synonyms]
+    # replace hyphens "-" with underscores "_"
+    synonyms = [token.replace('-', '_') for token in synonyms]
+    # # remove blank entries
+    # synonyms = list(filter(lambda x: x != "", synonyms))
+    return synonyms
+
+
+def parse_subclue(text):
+    # normal_match = re.search(r'[a-zA-Z\d\s\-_,;\"\'\.\?\!\(\)]+', text)
     
-    # check type of clue
-    match1 = re.match(r'^(.+)\([\d\-,; ]+\)$', text)
-    match2 = re.match(
-        r'^[S|s]ee (\d+(?: (?:across|down))?(?:, )?)+(?: \([\d\-,; ]+\))?[ ]*$', text)
-
-    # case 1: standard clue (e.g. "Dog (5)")
-    if match1 and not match2:
-        text = match1.group(1)
-        subclues = text.split(' - ')  # split by dashes
-        # check type of each subclue
-        all_synonyms = []
-        anagram = None
-        for subclue in subclues:
-            match = re.match(r'.*\(anag\).*', subclue)
-            # case 1: synonym
-            if match is None:
-                synonym_text = subclue
-                synonym_text = re.sub(r'\([b|d]\. \d+\)',     # hardcoded rule: remove anything like "(b. 1650)" or "(d. 1773)"
-                                      '', synonym_text)
-                synonym_text = re.sub(r'\(\d+-\d+\)',         # hardcoded rule: remove date ranges like "(1743-1789)"
-                                      '', synonym_text)
-                synonym_text = re.sub(r'''[^a-zA-Z'\- ]''',   # remove punctuation we're not interested in
-                                      '', synonym_text)
-                synonym_text = synonym_text.lower()           # convert to lowercase
-                # split by spaces and hyphens
-                synonyms = list(re.findall(r"[^ -]+", synonym_text))    
-                # synonyms = [re.sub(r"^-+", '', token)          # remove "-" from start of all words
-                #            for token in synonym]
-                # synonyms = [re.sub(r"-+$", '', token)          # remove "-" from end of all words
-                #            for token in synonym]
-                synonyms = [re.sub(r"'s$", '', token)          # remove "'s" from end of all words
-                           for token in synonyms]
-                synonyms = [re.sub(r"^'+", '', token)          # remove all other apostrophes from beginning of words
-                           for token in synonyms]
-                synonyms = [re.sub(r"'+$", '', token)          # remove all other apostrophes from end of words
-                           for token in synonyms]
-                # synonyms = [token.replace('-', '_')            # replace hyphens "-" with underscores "_"
-                #            for token in synonyms]
-                synonyms = list(filter(not_blank, synonyms))    # remove blank entries
-                all_synonyms.append(synonyms)
-            # case 2: anagram
-            else:
-                # it's an error if there is already an anagram for this clue
-                if anagram:
-                    raise ValueError(f'Multiple anagrams in one clue ("{text}")')
-                
-                anagram_text = re.sub(r'\(anag\)',            # remove string "(anag)"
-                                      '', subclue)
-                anagram_text = re.sub(r'[^a-zA-Z]',           # remove non-letter characters
-                                      '', anagram_text)
-                anagram = anagram_text.lower()                # convert to lowercase
-
-    # case 2: reference to another entry (e.g. "See 8 across")
-    elif match2:
-        all_synonyms = None
-        anagram = None
-
-    # otherwise: failed to understand clue, hence error
+    # Check category of clue
+    anag_match = re.search(r'^(.*)\(anag\.?\)$', text)
+    ref_match = re.search(r'^[S|s]ee(?:\s+(?:\d+|and|across|down),?)+$', text)
+    syn_match = re.search(r'(.*[a-zA-Z]+.*)', text)
+    
+    # Choose how to proceed based on category
+    if anag_match:
+        return "anagram", parse_anagram(anag_match.group(1))
+    elif ref_match:
+        return "reference", None
+    elif syn_match:
+        return "synonym", parse_synonym(syn_match.group(1))
     else:
-        err = f'Could not parse clue, "{text}"'
-        raise ValueError(err)
+        return "unknown", None
 
-    return all_synonyms, anagram
+
+def parse_clue(text):
+    # drop length indicators (e.g. drop "(8)" in "Moon shape (8)")
+    text = re.sub(r'(\([\d \-,;\.]+\))?\s*$', '', text)
+
+    # drop spaces from start and end of string
+    text = re.sub(r'^\s+', '', text)
+    text = re.sub(r'\s+$', '', text)
+    
+    # split into subclues, separated by dashes
+    subclues = re.split(r'\s+\-\s+', text)
+    
+    # parse each subclue, and return list of results
+    return [parse_subclue(text) for text in subclues]
 
 
 class CrosswordEntry:
@@ -117,7 +121,8 @@ class CrosswordEntry:
         """
         entry_id = d['id']
         solution = d['solution'].lower()
-        # work out where this entry sits on the board
+        
+        # Work out where this entry sits on the board
         length = d['length']
         direction = d['direction']
         x = d['position']['x']
@@ -129,9 +134,10 @@ class CrosswordEntry:
             elif direction == 'down':
                 tiles_spanned.append((x, y+i))
             else:
-                err = f'Unrecognised direction ("{direction}") for entry "{entry_id}"'
-                raise ValueError(err)
-        # work out where the separators go
+                msg = f'Unrecognised direction ("{direction}") for entry "{entry_id}"'
+                raise ValueError(msg)
+        
+        # Work out where the separators go
         separators = []
         for sep, pos in d['separatorLocations'].items():
             if sep == ',':
@@ -140,20 +146,39 @@ class CrosswordEntry:
                 sep = ' '  # replace semicolons with spaces
             for index in pos:
                 separators.append((index, sep))
-        # parse the clue text
+        
+        # Parse the clue text
         clue_text = d['clue']
-        try:
-            synonyms, anagram = read_clue(clue_text)
-        except ValueError as err:
-            msg = f'Unable to parse clue ("{clue_text}") for entry "{entry_id}"'
-            if xw_id:
-                msg += f' of crossword "{xw_id}"'
-            warn(msg)
-            synonyms, anagram = None, None
-        # done!
+        clues = parse_clue(clue_text)
+        synonyms = None
+        anagram = None
+        for category, val in clues:
+            if category == 'synonym':
+                if synonyms:
+                    synonyms.append(val)
+                else:
+                    synonyms = [val]
+            elif category == 'anagram':
+                if anagram:
+                    msg = f'Multiple anagrams in one clue ("{clue_text}") for entry "{entry_id}"'
+                    if xw_id:
+                        msg += f' of crossword "{xw_id}"'
+                    warn(msg)
+                else:
+                    anagram = val
+            elif category == 'reference':
+                pass
+            else:
+                msg = f'Unable to parse clue ("{clue_text}") for entry "{entry_id}"'
+                if xw_id:
+                    msg += f' of crossword "{xw_id}"'
+                warn(msg)
+        
+        # Return result
         return cls(entry_id, solution, tiles_spanned, separators,
                    clue_text, synonyms, anagram)
-
+    
+    
     @property
     def solution_length(self):
         """Length of the solution, in characters. Excludes separators (spaces, dashes, etc.)"""
