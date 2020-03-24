@@ -122,57 +122,64 @@ class CrosswordEntry:
         entry_id = d['id']
         solution = d['solution'].lower()
         
+        # Keep track of warning messages for diagnostics
+        warnings = []
+        
         # Work out where this entry sits on the board
         length = d['length']
         direction = d['direction']
         x = d['position']['x']
         y = d['position']['y']
+        
         tiles_spanned = []
-        for i in range(length):
-            if direction == 'across':
+        if direction == 'across':
+            for i in range(length):
                 tiles_spanned.append((x+i, y))
-            elif direction == 'down':
+        elif direction == 'down':
+            for i in range(length):
                 tiles_spanned.append((x, y+i))
-            else:
-                msg = f'Unrecognised direction ("{direction}") for entry "{entry_id}"'
-                raise ValueError(msg)
+        else:
+            warnings.append(f'Unrecognised direction ("{direction}")')
         
         # Work out where the separators go
         separators = []
+        
         for sep, pos in d['separatorLocations'].items():
             if sep == ',':
                 sep = ' '  # replace commas with spaces
-            if sep == ';':
+            elif sep == ';':
                 sep = ' '  # replace semicolons with spaces
+            
             for index in pos:
                 separators.append((index, sep))
         
         # Parse the clue text
         clue_text = d['clue']
         clues = parse_clue(clue_text)
-        synonyms = None
-        anagram = None
-        for category, val in clues:
-            if category == 'synonym':
-                if synonyms:
-                    synonyms.append(val)
-                else:
-                    synonyms = [val]
-            elif category == 'anagram':
-                if anagram:
-                    msg = f'Multiple anagrams in one clue ("{clue_text}") for entry "{entry_id}"'
-                    if xw_id:
-                        msg += f' of crossword "{xw_id}"'
-                    warn(msg)
-                else:
-                    anagram = val
-            elif category == 'reference':
-                pass
-            else:
-                msg = f'Unable to parse clue ("{clue_text}") for entry "{entry_id}"'
-                if xw_id:
-                    msg += f' of crossword "{xw_id}"'
-                warn(msg)
+        
+        synonyms = [val for category, val in clues if category == 'synonym']
+        anagrams = [val for category, val in clues if category == 'anagram']
+        references = [val for category, val in clues if category == 'reference']
+        unknowns = [val for category, val in clues if category == 'unknown']
+        
+        if len(synonyms) == 0:
+            synonyms = None
+        
+        if len(anagrams) > 0:
+            anagram = anagrams[0]
+            if len(anagrams) > 1:
+                warnings.append(f'Multiple anagrams in one clue ("{clue_text}")')
+        else:
+            anagram = None
+        
+        if len(unknowns) > 0:
+            warnings.append(f'Unable to parse clue ("{clue_text}")')
+        
+        for warning in warnings:
+            warning += f' for entry "{entry_id}"'
+            if xw_id:
+                warning += f' of crossword "{xw_id}"'
+            warn(warning)
         
         # Return result
         return cls(entry_id, solution, tiles_spanned, separators,
