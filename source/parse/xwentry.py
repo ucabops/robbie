@@ -119,11 +119,15 @@ class CrosswordEntry:
             xw_id: ID of the crossword this entry belongs to. Not used for
                 anything apart from diagnostics, defaults to 'None'.
         """
-        entry_id = d['id']
-        solution = d['solution'].lower()
-        
         # Keep track of warning messages for diagnostics
         warnings = []
+        
+        entry_id = d['id']
+        
+        solution = d['solution'].lower()
+        solution = re.sub(r'[^a-z]', '', solution)
+        if len(solution) == 0:
+            warnings.append(f'Blank solution')
         
         # Work out where this entry sits on the board
         length = d['length']
