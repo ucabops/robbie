@@ -1,7 +1,7 @@
 import argparse
 import json
 
-# List of all corrections to apply
+# List of corrections to apply
 corrections = [
     {'xw': '10252', 'entry': '19-down', 'clue': 'Ponder (5)'},
     {'xw': '10445', 'entry': '19-across', 'clue': 'Baptist in Bible (4)'},
@@ -14,6 +14,11 @@ corrections = [
     {'xw': '11707', 'entry': '19-across', 'clue': 'Gunfire - attempt (4)'},
     {'xw': '11707', 'entry': '18-down', 'clue': 'Fewer (4)'},
     {'xw': '11873', 'entry': '19-across', 'group': ['16-across']},
+]
+
+# List of crosswords to ignore
+broken_xws = [
+    '10362',
 ]
 
 
@@ -51,6 +56,10 @@ if __name__ == '__main__':
     # Quick check to make sure the code above has done what we expect
     entry = get_entry(data, xw_id='10252', entry_id='19-down')
     assert (entry is None) or (entry['clue'] == 'Ponder (5)')
+    
+    # Remove the crosswords we're not interested in
+    for xw_id in broken_xws:
+        data.pop(xw_id, None)
     
     # Save the updated dataset
     with open(filepath, 'w') as file:
