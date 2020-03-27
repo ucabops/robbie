@@ -7,6 +7,19 @@ from xwpuzzle import Crossword
 from xwset import CrosswordSet
 
 
+def convert_to_str(entryset):
+    output = ''
+    for entry in entryset:
+        solution = entry['underscored_solution']
+        synonyms = entry['all_synonyms']
+        if synonyms:
+            output += solution
+            for token in synonyms:
+                output += f' {token}'
+            output += '\n'
+    return output
+
+
 if __name__ == '__main__':
     script_desc = 'Parse raw dataset of crosswords and extract useful features.'
     parser = argparse.ArgumentParser(description=script_desc)
@@ -38,9 +51,36 @@ if __name__ == '__main__':
             }
             d[f'{xw_id}-{entry_id}'] = info
     
-    # Save the extracted features
+    # Save the extracted features as JSON
     filepath = f'./data/{args.filename}-entries.json'
     with open(filepath, 'w') as file:
         json.dump(d, file)
+    print(f"Feature set #1 saved to {filepath}")
     
-    print(f"Feature set saved to {filepath}")
+    # Create a train/test split from dataset
+    ratio = 0.8
+    train_len = round(ratio * len(d))
+    test_len = len(d) - train_len
+    
+    train_data = []
+    test_data = []
+    for i, entry in enumerate(d.values()):
+        if i < train_len:
+            train_data.append(entry)
+        else:
+            test_data.append(entry)
+    
+    # Save the extracted features as TXT
+    train_output = convert_to_str(train_data)
+    test_output = convert_to_str(test_data)
+    
+    filepath = f'./data/{args.filename}-entries-train.txt'
+    with open(filepath, 'w') as file:
+        file.write(train_output)
+    print(f"Feature set #2 (train) saved to {filepath}")
+
+    filepath = f'./data/{args.filename}-entries-test.txt'
+    with open(filepath, 'w') as file:
+        file.write(test_output)
+    print(f"Feature set #2 (test) saved to {filepath}")
+    
