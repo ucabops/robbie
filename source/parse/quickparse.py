@@ -58,17 +58,17 @@ if __name__ == '__main__':
     print(f"Feature set #1 saved to {filepath}")
     
     # Create a train/test split from dataset
-    ratio = 0.8
+    ratio = 0.9
     train_len = round(ratio * len(d))
     test_len = len(d) - train_len
     
     train_data = []
     test_data = []
     for i, entry in enumerate(d.values()):
-        if i < train_len:
-            train_data.append(entry)
-        else:
+        if i < test_len:
             test_data.append(entry)
+        else:
+            train_data.append(entry)
     
     # Save the extracted features as TXT
     train_output = convert_to_str(train_data)
