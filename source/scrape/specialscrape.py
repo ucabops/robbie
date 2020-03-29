@@ -10,7 +10,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # Specify list of crosswords to download
-    xw_list = [20, 14, 487, 318, 408, 39, 190, 90, 250, 426]
+    xw_list = [182, 131, 326, 199, 35, 363, 66, 48, 33, 197]
     num_xws = len(xw_list)
 
     # Scrape data
