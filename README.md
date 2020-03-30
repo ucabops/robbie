@@ -6,7 +6,7 @@ python source/run_nbow.py gquick-{n}
 ```
 from the root directory of this repository, where `{n}` is one of 10, 30, 100, 500, 1000 or 5000.
 
-For more information, please consult our paper here: ("A Study of Neural Architectures for General Knowledge Crossword Clue Solving")[https://drive.google.com/file/d/1Du7X1EmimxOSmxuNmVeNREUvj6U5BvQ5/view?usp=sharing]
+For more information, please consult our paper here: ["A Study of Neural Architectures for General Knowledge Crossword Clue Solving"](https://drive.google.com/file/d/1Du7X1EmimxOSmxuNmVeNREUvj6U5BvQ5/view?usp=sharing)
 
 ## Licence
 
