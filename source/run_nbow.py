@@ -12,6 +12,27 @@ from models.nbow import master_base, key_adder
 from models.amer_brit import wordpairs
 
 
+def print_metrics(metrics, runs):
+    acc_at_1 = metrics[4]/runs
+    acc_at_10 = metrics[0]/runs
+    acc_at_100 = metrics[1]/runs
+    
+    correct_at_100 = metrics[1]
+    correct_at_1000 = metrics[5]
+    
+    median_at_100 = np.median(np.asarray(metrics[2]))
+    median_at_1000 = np.median(np.asarray(metrics[3]))
+    
+    print(f"Total Number of Clues Considered: {runs}")
+    print(f"Accuracy @ Rank   1: {acc_at_1:.2%}")
+    print(f"Accuracy @ Rank  10: {acc_at_10:.2%}")
+    print(f"Accuracy @ Rank 100: {acc_at_100:.2%}")
+    print(f"Number of Correct Answers in top 100: {correct_at_100}")
+    print(f"Median answer rank, top 100: {median_at_100}")
+    print(f"Number of Correct Answers in top 1000: {correct_at_1000}")
+    print(f"Median answer rank, top 1000: {median_at_1000}")
+
+
 if __name__ == '__main__':
     script_desc = 'Run the neural bag-of-words model (NBOW) on the \'gquick\' dataset'
     parser = argparse.ArgumentParser(description=script_desc)
@@ -115,7 +136,6 @@ if __name__ == '__main__':
     
     # Run model
     keys = list(data.keys())
-    
     metrics, errs, runs = master_base(model, data, keys, pooling='mean', version=2, topn=100000, verbose=2,
                                       enhancements={'length': True,
                                                     'clue_word': True,
@@ -123,14 +143,6 @@ if __name__ == '__main__':
                                                     'multi_synonym': False,
                                                     'multiword': True})
     
-    # Print results
-    print("Total Number of Clues Considered :", runs)
-    print("Accuracy @ Rank   1 : ", round((metrics[4]/runs)*100, 2), "%")
-    print("Accuracy @ Rank  10 : ", round((metrics[0]/runs)*100, 2), "%")
-    print("Accuracy @ Rank 100 : ", round((metrics[1]/runs)*100, 2), "%")
-    print("Number of Correct Answers in top 100 :", metrics[1])
-    print("Median answer rank, top 100 :", np.median(np.asarray(metrics[2])))
-    print("Number of Correct Answers in top 1000 :", metrics[5])
-    print("Median answer rank, top 1000 :", np.median(np.asarray(metrics[3])))
-
-    print(f"Process finished --- {(time.time() - start_time)/60:.0} minutes ---")
+    print_metrics(metrics, runs)
+    end_time = time.time()
+    print(f"Process finished --- {(end_time-start_time)/60:.1f} minutes ---")
